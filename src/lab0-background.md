@@ -17,7 +17,7 @@
       1. 如果`current_table`的数据量未达到阈值, 直接返回给客户端
       2. 如果`current_table`的数据量达到阈值, 则将`current_table`被冻结称为`frozen_tables`中的一份, 并重新初始化一份`current_table`
 2. 如果前述步骤导致了新的`frozen_table`产生, 判断`frozen_table`的容量是否超出阈值
-3. 如果超出阈值, 则将`frozen_table`持久化到磁盘中, 形成`SST`(全程是`Sorted String Table`), 单个`SST`是有序的。
+3. 如果超出阈值, 则将`frozen_table`持久化到磁盘中, 形成`SST`(全称是`Sorted String Table`), 单个`SST`是有序的。
    1. `SST`按照不同的层级进行划分, 内存中的`MemTable`刷出的`SST`位于`Level 0`, `Level 0`的`SST`是存在重叠的。（例如`SST 0`的`key`范围是`[0, 100)`, `SST 1`的`key`范围是`[50, 150)`, 那么`SST 0`和`SST 1`的`key`在`50, 100)`范围是重叠的, 因此无法在整个层级进行二分查询）
    2. 当`Level 0`的`SST`数量达到一定阈值时, 会进行`Level 0`的`SST`合并, 将`SST`进行`compact`操作, 新的`SST`将放在`Level 1`中。同时，为保证此层所有`SST`的`key`有序且不重叠, `compact`的`SST`需要与原来`Level 1`的`SST`进行重新排序。由于`compact`时将上一层所有的`SST`合并到了下一层, 因此每层单个`SST`的容量是呈指数增长的。
    3. 当每一层的`SST`数量达到一定阈值时, `compact`操作会递归地向下一层进行。
